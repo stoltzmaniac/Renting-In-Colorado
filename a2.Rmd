@@ -8,7 +8,6 @@ output:
 ```{r}
 library(rjson)
 library(tidyverse)
-library(googleVis)
 library(RCurl)
 library(RSocrata)
 library(ggrepel)
@@ -77,18 +76,25 @@ noQtrDF = df %>%
   summarise(averagerent = round(mean(averagerent),0))
 
 noQtrDF$year = as.numeric(noQtrDF$year)
+noQtrDF$apartmenttype = as.factor(noQtrDF$apartmenttype)
+noQtrDF$subregion = as.factor(noQtrDF$subregion)
 
-by_subregion = df %>%
- group_by(subregion) %>%
- nest()
+qplot(data=noQtrDF, x = year, y = averagerent,size=2) + 
+  theme_bw() + 
+  facet_trelliscope(~apartmenttype + subregion,nrow=2,ncol=3,self_contained=TRUE)
 
-by_subregion = by_subregion %>% mutate(
-  panel = map_plot(data,
-                   ~ figure(xlim = c(2000, 2015), ylim = c(10, 95), width = 300, tools = NULL) %>%
-                     ly_points(year, averagerent, data = .x, hover = .x)
-                    ))
 
-by_subregion %>%
-  trelliscope("Rent in Colorado",nrow=2,ncol=2,self_contained=TRUE)
+# by_subregion = noQtrDF %>%
+#  group_by(subregion) %>%
+#  nest()
+# 
+# by_subregion = by_subregion %>% mutate(
+#   panel = map_plot(data,
+#                    ~ figure(xlim = c(2000, 2015), ylim = c(300,2000)) %>%
+#                      ly_points(year, averagerent, data = .x, hover = .x)
+#                     ))
+# 
+# by_subregion %>%
+#   trelliscope("Rent in Colorado",nrow=2,ncol=1,self_contained=TRUE)
 ```
 

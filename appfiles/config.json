@@ -1,0 +1,10 @@
+{
+  "display_base": "__self__",
+  "data_type": "json",
+  "cog_server": {
+    "type": "json",
+    "info": {
+      "base": "__self__"
+    }
+  }
+}

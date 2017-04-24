@@ -1,0 +1,32 @@
+[
+  {
+    "group": "common",
+    "name": "by_apartmenttype_subregion",
+    "desc": "",
+    "n": 162,
+    "height": 500,
+    "width": 500,
+    "updated": "2017-04-24 17:46:24",
+    "keySig": "fbe185131f106412bfc57f8e37262288"
+  },
+  {
+    "group": "common",
+    "name": "by_subregion",
+    "desc": "",
+    "n": 28,
+    "height": 500,
+    "width": 500,
+    "updated": "2017-04-24 17:38:45",
+    "keySig": "819c305151e883cb9a28d5e93bd8d39f"
+  },
+  {
+    "group": "common",
+    "name": "Rent_in_Colorado",
+    "desc": "",
+    "n": 28,
+    "height": 500,
+    "width": 500,
+    "updated": "2017-04-24 17:26:18",
+    "keySig": "819c305151e883cb9a28d5e93bd8d39f"
+  }
+]
