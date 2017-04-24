@@ -1,0 +1,96 @@
+---
+title: "Untitled"
+author: "Scott Stoltzman"
+date: "April 24, 2017"
+output: html_document
+---
+
+```{r}
+library(rjson)
+library(tidyverse)
+library(googleVis)
+library(RCurl)
+library(RSocrata)
+library(ggrepel)
+
+creds = fromJSON(file = "credentials.json")
+url = "https://data.colorado.gov/resource/yifv-9mje.json"
+#url = "https://data.colorado.gov/resource/693w-2ir9.json"
+
+data = read.socrata(url,creds$token)
+
+library(ggmap)
+df = data %>% na.omit() %>% filter(subregion != 'Metro Average')
+co.locations = df %>% select(subregion) %>% unique()
+co.locations = paste(co.locations$subregion,', CO',sep='')
+
+#lonLat = geocode(co.locations)
+#lonLat$subregion = sub(", CO", '',co.locations)
+#write.csv(lonLat,'subregion_lon_lat.csv',row.names=FALSE)
+lonLat = read.csv('subregion_lon_lat.csv')
+df$averagerent = round(as.numeric(df$averagerent),0)
+#df$year = as.factor(df$year)
+
+mergedDF = merge(df,lonLat,by='subregion')
+annualDF = mergedDF %>% 
+  filter(apartmenttype == 'All') %>% 
+  group_by(subregion,lon,lat,year) %>%
+  summarise(rent = round(mean(averagerent)),0) %>%
+  arrange(year) %>% filter(year >= 2015)
+
+colo_map = qmap("Colorado, United States",zoom = 7, source = "google",legend='topleft')
+#colo_map = qmap("Colorado, United States",zoom = 7, source='stamen', maptype='toner',legend='topleft')
+colo_map + geom_point(aes(x=lon, y=lat, col=rent),
+                      data = annualDF, 
+                      alpha = 0.9,
+                      size=9) + scale_color_gradient(low="green", high="red") + 
+  geom_label_repel(data=annualDF,aes(label=paste(subregion,"\n","$",rent)),size=2.5)
+
+
+
+
+annualDF = mergedDF %>% 
+  group_by(apartmenttype,subregion,lon,lat,year) %>%
+  summarise(rent = round(mean(averagerent)),0) %>%
+  arrange(year) %>% filter(year >= 2015)
+
+#colo_map = qmap("Colorado, United States",zoom = 7, source = "google",legend='bottom')
+colo_map = qmap("Colorado, United States",zoom = 7, source='stamen', maptype='toner',legend='bottom')
+colo_map + geom_point(aes(x=lon, y=lat, col=rent),
+                      data = annualDF, 
+                      alpha = 0.9,
+                      size=5) + scale_color_gradient(low="green", high="red") + 
+  facet_wrap(~apartmenttype) + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        panel.border=element_rect(fill=NA,size=2))
+
+
+
+```
+
+```{r}
+library(trelliscopejs)
+library(rbokeh)
+
+noQtrDF = df %>%
+  group_by(apartmenttype,subregion,year) %>%
+  summarise(averagerent = round(mean(averagerent),0))
+
+noQtrDF$year = as.numeric(noQtrDF$year)
+
+by_subregion = df %>%
+ group_by(subregion) %>%
+ nest()
+
+by_subregion = by_subregion %>% mutate(
+  panel = map_plot(data,
+                   ~ figure(xlim = c(2000, 2015), ylim = c(10, 95), width = 300, tools = NULL) %>%
+                     ly_points(year, averagerent, data = .x, hover = .x)
+                    ))
+
+by_subregion %>%
+  trelliscope("Rent in Colorado",nrow=2,ncol=2,self_contained=TRUE)
+```
+
